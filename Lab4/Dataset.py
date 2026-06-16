@@ -75,8 +75,6 @@ def LoadAndPreprocessData(
     ]
     dataset, action = [], []
 
-    print("开始清洗并加载骨骼点数据集……")
-
     for file in dir_list:
         if (
             file.startswith("subject000")
@@ -85,7 +83,7 @@ def LoadAndPreprocessData(
         ):
             continue
 
-        sys.stdout.write("正在处理第 %d/%d 个文件：%s\r" % (len(dataset) + 1, len(dir_list), file))
+        sys.stdout.write("Processing file %d/%d: %s\r" % (len(dataset) + 1, len(dir_list), file))
 
         raw_data = pd.read_csv(
             os.path.join(datasets_path, file), skiprows=3, low_memory=False
