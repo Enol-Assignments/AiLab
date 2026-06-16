@@ -314,6 +314,7 @@ from tensorflow.keras.datasets import mnist
 import torch
 from torchvision import datasets, transforms
 # 定义数据转换
+
 transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.1307,), (0.3081,))]
 # 加载MNIST数据集
 train_dataset = datasets.MNIST(root='./data', train=True, download=True, transform=transform)
