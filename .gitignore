@@ -1,4 +1,4 @@
 *.txt
 Lab4/*.txt
-Lab4/Demo
-Lab4/Torch
+Lab4/Demo/
+Lab4/Torch/
