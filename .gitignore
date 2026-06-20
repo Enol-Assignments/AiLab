@@ -2,6 +2,10 @@ Lab1/__pycache__/
 Lab2/__pycache__/
 Lab3/__pycache__/
 Lab4/__pycache__/
+Lab1/Build/
+Lab2/Build/
+Lab3/Build/
+Lab4/Build/
 Lab4/*.txt
 Lab4/Demo/
 Lab4/Torch/

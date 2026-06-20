@@ -1,0 +1,435 @@
+\documentclass[UTF8]{ctexart}
+
+\usepackage[T1]{fontenc}
+\usepackage{lmodern} 
+\usepackage{fix-cm}    
+\usepackage{microtype} 
+
+\usepackage{graphicx}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{amsmath}
+\usepackage{geometry}
+\geometry{a4paper, margin=2.5cm}
+
+\lstset{
+  language=Python,
+  basicstyle=\small\ttfamily,
+  keywordstyle=\color{blue},
+  commentstyle=\color{gray},
+  stringstyle=\color{red},
+  showstringspaces=false,
+  breaklines=true,
+  frame=single,
+  numbers=left,
+  numberstyle=\tiny\color{gray},
+  tabsize=4,
+  columns=flexible,
+}
+
+\begin{document}
+
+\begin{center}
+{\LARGE\textbf{人工智能实验报告}}\\[8pt]
+{\Large\textbf{实验二} \quad 传统机器学习方法}
+\end{center}
+
+\vspace{8pt}
+
+\begin{center}
+\begin{tabular}{
+    >{\raggedright\arraybackslash}p{4.8cm}
+    >{\centering\arraybackslash}p{4.8cm}
+    >{\raggedleft\arraybackslash}p{4.8cm}
+}
+
+学院：\underline{\makebox[3.6cm][c]{计算机与通信工程学院}} &
+专业：\underline{\makebox[3.6cm][c]{计算机科学与技术}} &
+班级：\underline{\makebox[3.6cm][c]{计 234 班}} \\
+[6pt]
+姓名：\underline{\makebox[3.6cm][c]{秦瑞}} &
+学号：\underline{\makebox[3.6cm][c]{U202342492}} &
+日期：\underline{\makebox[3.6cm][c]{2026 年 6 月 19 日}} \\
+\end{tabular}
+\end{center}
+
+\vspace{12pt}
+
+\section{实验目标}
+
+\begin{enumerate}
+\item 掌握传统机器学习的基本流程和方法，包括熟悉数据预处理、特征工程、模型训练与评估展示等完整流程；
+      理解传统机器学习算法的核心原理（如分类、回归、聚类等）。
+\item 通过监督学习和无监督学习实验，理解不同算法的应用场景和效果评估。
+      监督学习例如分类算法（如 KNN、决策树、SVM 等），对比分类性能；
+      无监督学习例如聚类算法（如K-Means、层次聚类等），分析聚类效果。
+\item 通过可视化展示，深入理解数据和模型，包括数据可视化（使用散点图、箱线图、平行坐标图等展示数据集特征分布和类别差异）、
+      模型可视化（对监督学习模型，绘制决策边界（如决策树、SVM）或特征重要性（如随机森林）；
+      对无监督学习模型，展示聚类结果（如 K-Means 的聚类中心、聚类分布）等）、
+      效果可视化（使用混淆矩阵热力图、ROC 曲线等展示分类模型的性能；
+      使用肘部法则图、轮廓系数图等展示聚类模型的效果）。
+\end{enumerate}
+
+\section{实验内容}
+
+\subsection{任务分析}
+
+本次实验包含两个部分：监督学习和无监督学习。
+
+\textbf{第一部分：监督学习（Iris 分类）}。
+Iris 数据集是经典的多分类数据集，包含 150 个样本，分为 3 个类别（\texttt{setosa、versicolor、virginica}），
+每个样本有 4 个特征（花萼长度、花萼宽度、花瓣长度、花瓣宽度）。
+任务目标是利用逻辑回归、决策树和 SVM 三种算法完成分类任务，对比不同算法的分类性能，
+并通过可视化手段分析数据分布、模型决策边界和性能指标。
+
+\textbf{第二部分：无监督学习（Mall Customers 聚类）}。
+Mall Customers 数据集包含 200 个顾客样本，特征包括性别、年龄、年收入和消费评分。
+任务目标是利用 PCA 和 t-SNE 进行降维可视化，
+使用 KMeans、层次聚类和 DBSCAN 三种算法进行聚类分析，评估聚类效果并展示客户分群结果。
+
+\subsection{实现工具}
+
+\begin{itemize}
+\item \textbf{编程语言}：Python 3
+\item \textbf{数据处理}：NumPy、Pandas
+\item \textbf{机器学习框架}：Scikit-learn（包含逻辑回归、决策树、SVM、KMeans、层次聚类、DBSCAN、PCA、t-SNE 等）
+\item \textbf{可视化工具}：Matplotlib、Seaborn
+\item \textbf{开发环境}：Jupyter Notebook
+\end{itemize}
+
+\subsection{实现方案}
+
+\textbf{第一部分（监督学习）}实现方案：
+\begin{enumerate}
+\item 加载 Iris 数据集，检查缺失值并进行数据探索性分析（箱线图、散点矩阵、相关性热力图、平行坐标图）
+\item 将数据集按 $8:2$ 比例划分为训练集和测试集，并进行标准化处理
+\item 分别训练逻辑回归、决策树（\texttt{max\_depth=4}）和 SVM（RBF 核）模型
+\item 在测试集上评估各模型的准确率和 F1 分数，绘制混淆矩阵和 ROC 曲线
+\item 进行 5 折交叉验证，对比模型泛化能力
+\item 分析正则化强度、决策树深度、SVM 核函数等参数对模型性能的影响
+\end{enumerate}
+
+\textbf{第二部分（无监督学习）}实现方案：
+\begin{enumerate}
+\item 加载 Mall Customers 数据集，对性别特征进行编码，对数值特征进行标准化
+\item 使用 PCA 和 t-SNE 将高维数据降至 2 维进行可视化
+\item 使用肘部法则和多种评估指标（轮廓系数、Calinski-Harabasz 指数、Davies-Bouldin 指数）确定最优聚类数 \texttt{K}
+\item 分别运行 KMeans（\texttt{K=5}）、层次聚类和 DBSCAN 算法进行聚类
+\item 对比不同聚类算法的效果，分析聚类中心特征（雷达图、特征分布图）
+\end{enumerate}
+
+\subsection{实现内容}
+
+\subsubsection{第一部分：监督学习（Iris 分类）}
+
+\textbf{1. 数据探索与可视化}
+
+首先加载 Iris 数据集，数据集包含 150 个样本，
+4 个特征（\texttt{sepal length, sepal width, petal length, petal width}），
+3 个类别（\texttt{setosa, versicolor, virginica}），每类 50 个样本，无缺失值。
+
+图 \ref{fig:boxplot} 展示了各特征在不同类别上的箱线图分布，
+可以看出 \texttt{setosa} 在花瓣特征上与其他两个类别有明显的区分度。
+图 \ref{fig:pairplot} 展示了特征间的两两散点关系，可观察到类别间的可分性。
+图 \ref{fig:heatmap} 展示了特征间的相关性，花瓣长度和花瓣宽度相关性最高（$0.96$）。
+图 \ref{fig:parallel} 通过平行坐标图展示了所有样本在各特征维度上的分布模式。
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.9\textwidth]{Build/img_000.png}
+\caption{Iris 数据集特征箱线图}
+\label{fig:boxplot}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.9\textwidth]{Build/img_001.png}
+\caption{Iris 数据集特征散点矩阵}
+\label{fig:pairplot}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.9\textwidth]{Build/img_002.png}
+\caption{特征相关性热力图}
+\label{fig:heatmap}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.9\textwidth]{Build/img_003.png}
+\caption{Iris 数据集平行坐标图}
+\label{fig:parallel}
+\end{figure}
+
+\textbf{2. 模型训练与评估}
+
+数据集按 $8:2$ 比例划分后，训练集包含 120 个样本，测试集包含 30 个样本。
+对特征进行标准化处理（均值为 $0$，标准差为 $1$）。
+
+表 \ref{tab:results} 展示了三种模型在测试集上的分类结果。
+
+\begin{table}[htbp]
+\centering
+\caption{监督学习模型分类结果对比}
+\label{tab:results}
+\begin{tabular}{lcc}
+\toprule
+模型 & 准确率 & F1 分数（加权） \\
+\midrule
+逻辑回归（Logistic Regression） & $0.9333$ & $0.9333$ \\
+决策树（Decision Tree, \texttt{max\_depth=4}） & $0.9333$ & $0.9333$ \\
+支持向量机（SVM, RBF 核） & $0.9667$ & $0.9666$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+表 \ref{tab:cv} 展示了 5 折交叉验证的结果。
+
+\begin{table}[htbp]
+\centering
+\caption{5 折交叉验证结果}
+\label{tab:cv}
+\begin{tabular}{lcc}
+\toprule
+模型 & 平均准确率 & 标准差 \\
+\midrule
+逻辑回归 & $0.9583$ & $0.0264$ \\
+决策树 & $0.9417$ & $0.0204$ \\
+SVM（RBF 核） & $0.9667$ & $0.0312$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+图 \ref{fig:confusion} 展示了三个模型的混淆矩阵对比，图 \ref{fig:performance} 展示了性能对比柱状图。
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.9\textwidth]{Build/img_004.png}
+\caption{混淆矩阵对比}
+\label{fig:confusion}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.9\textwidth]{Build/img_005.png}
+\caption{模型性能对比柱状图}
+\label{fig:performance}
+\end{figure}
+
+\textbf{3. 模型可视化分析}
+
+图 \ref{fig:tree} 展示了决策树的可视化结构，可以直观看到决策树基于各特征阈值进行分类的过程。
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.9\textwidth]{Build/img_006.png}
+\caption{决策树可视化}
+\label{fig:tree}
+\end{figure}
+
+图 \ref{fig:boundary} 展示了三种模型在前两个特征上的决策边界。
+逻辑回归产生线性决策边界，决策树产生轴对齐的矩形决策区域，SVM（RBF 核）产生非线性的曲线决策边界。
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.9\textwidth]{Build/img_007.png}
+\caption{模型决策边界对比}
+\label{fig:boundary}
+\end{figure}
+
+图\ref{fig:roc}展示了三个模型的 ROC 曲线（采用 One-vs-Rest 策略），所有模型的 AUC 值均较高，表明分类性能良好。
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.9\textwidth]{Build/img_008.png}
+\caption{ROC 曲线对比}
+\label{fig:roc}
+\end{figure}
+
+\textbf{4. 参数影响分析}
+
+图 \ref{fig:regularization} 展示了逻辑回归中正则化强度 \texttt{C} 对模型性能的影响。
+当 \texttt{C} 较小时（强正则化），模型欠拟合；
+当 \texttt{C} 适中时，模型达到最优性能；
+当 \texttt{C} 较大时，模型可能出现过拟合。
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.9\textwidth]{Build/img_009.png}
+\caption{正则化强度对逻辑回归的影响}
+\label{fig:regularization}
+\end{figure}
+
+图 \ref{fig:depth} 展示了决策树深度对分类性能的影响。
+随着深度增加，训练集准确率持续上升，但测试集准确率先升后降，表明过深的决策树容易过拟合。
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.9\textwidth]{Build/img_010.png}
+\caption{决策树深度对性能的影响}
+\label{fig:depth}
+\end{figure}
+
+图\ref{fig:kernel}展示了 SVM 不同核函数的分类效果对比。
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.9\textwidth]{Build/img_011.png}
+\caption{SVM 核函数对比}
+\label{fig:kernel}
+\end{figure}
+
+\subsubsection{第二部分：无监督学习（Mall Customers 聚类）}
+
+\textbf{1. 数据探索与可视化}
+
+Mall Customers 数据集包含 200 个样本，
+特征为性别（Genre）、年龄（Age）、年收入（Annual Income）和消费评分（Spending Score）。
+
+图 \ref{fig:feat_dist} 展示了各数值特征的分布情况，年龄分布较为均匀，年收入和消费评分呈现近似正态分布。
+图 \ref{fig:gender} 展示了性别分布，女性顾客略多于男性。
+图 \ref{fig:income_spend} 展示了年收入与消费评分的关系散点图。
+图 \ref{fig:boxplots_mall} 展示了箱线图用于异常值检测。
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.9\textwidth]{Build/img_012.png}
+\caption{顾客特征分布直方图}
+\label{fig:feat_dist}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.9\textwidth]{Build/img_013.png}
+\caption{性别分布}
+\label{fig:gender}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.9\textwidth]{Build/img_014.png}
+\caption{年收入与消费评分散点图}
+\label{fig:income_spend}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.9\textwidth]{Build/img_015.png}
+\caption{箱线图异常值检测}
+\label{fig:boxplots_mall}
+\end{figure}
+
+\textbf{2. 降维分析}
+
+对特征进行标准化后，使用 PCA 和 t-SNE 进行降维。
+图 \ref{fig:pca_var} 展示了 PCA 各主成分的解释方差比例，前两个主成分累计解释了约 $70\%$ 的方差。
+图 \ref{fig:dim_compare} 对比了 PCA 和 t-SNE 的降维效果，t-SNE 在保留局部结构方面表现更好，能更清晰地展示数据的潜在分群模式。
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.9\textwidth]{Build/img_016.png}
+\caption{PCA 解释方差分析}
+\label{fig:pca_var}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.9\textwidth]{Build/img_017.png}
+\caption{PCA 与 t-SNE 降维对比}
+\label{fig:dim_compare}
+\end{figure}
+
+\textbf{3. 聚类分析}
+
+图 \ref{fig:elbow} 展示了 KMeans 聚类的肘部法则和多种评估指标。综合分析，\texttt{K=5} 为最优聚类数，此时轮廓系数为 $0.5539$。
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.9\textwidth]{Build/img_018.png}
+\caption{肘部法则与聚类评估指标}
+\label{fig:elbow}
+\end{figure}
+
+分别使用 KMeans（\texttt{K=5}）、层次聚类和DBSCAN三种算法进行聚类。
+图 \ref{fig:cluster_pca} 和图 \ref{fig:cluster_tsne} 分别展示了基于 PCA 和 t-SNE 可视化的聚类结果对比。
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.9\textwidth]{Build/img_019.png}
+\caption{聚类结果对比（PCA 可视化）}
+\label{fig:cluster_pca}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.9\textwidth]{Build/img_020.png}
+\caption{聚类结果对比（t-SNE 可视化）}
+\label{fig:cluster_tsne}
+\end{figure}
+
+\textbf{4. 聚类结果分析}
+
+图 \ref{fig:radar} 展示了 KMeans 聚类中心的雷达图，可以直观对比各簇在不同特征上的特征模式。
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.9\textwidth]{Build/img_021.png}
+\caption{KMeans 聚类中心雷达图}
+\label{fig:radar}
+\end{figure}
+
+图 \ref{fig:feat_by_cluster} 展示了各特征在不同簇上的分布情况，有助于理解每个簇的客户特征。
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.9\textwidth]{Build/img_022.png}
+\caption{各簇特征分布对比}
+\label{fig:feat_by_cluster}
+\end{figure}
+
+图 \ref{fig:k_compare} 展示了不同 \texttt{K} 值下 KMeans 聚类的可视化结果和对应的轮廓系数，验证了 \texttt{K=5} 的合理性。
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.9\textwidth]{Build/img_023.png}
+\caption{不同 \texttt{K} 值聚类结果对比}
+\label{fig:k_compare}
+\end{figure}
+
+\section{实验总结}
+
+\textbf{1. 算法性能对比分析}
+
+在 Iris 分类任务中，三种监督学习算法均取得了较好的分类效果。
+SVM（RBF 核）表现最优（准确率 $0.9667$），逻辑回归和决策树次之（准确率 $0.9333$）。
+5 折交叉验证结果表明 SVM 的泛化能力最强（$0.9667\pm0.0312$）。
+这是因为 Iris 数据集虽然整体可分性较好，但 \texttt{versicolor} 和 \texttt{virginica} 两个类别在特征空间中存在重叠，
+SVM 通过 RBF 核映射到高维空间后能更好地处理这种非线性边界。
+
+在 Mall Customers 聚类任务中，KMeans（\texttt{K=5}）取得了较好的聚类效果（轮廓系数 $0.5539$）。
+不同聚类算法各有特点：KMeans 计算效率高但需要预设 \text{K} 值；
+层次聚类无需预设簇数但计算复杂度较高；
+DBSCAN 能自动发现任意形状的簇和噪声点，但对参数（\texttt{eps} 和 \texttt{min\_samples}）敏感。
+
+\textbf{2. 重要参数对算法性能的影响}
+
+\begin{itemize}
+\item \textbf{决策树深度}：深度过小导致欠拟合，深度过大导致过拟合，需要通过验证集选择合适的深度（本实验中 \texttt{max\_depth=4} 效果较好）。
+\item \textbf{正则化强度（C）}：逻辑回归中 C 值控制正则化强度，过小导致欠拟合，过大导致过拟合。
+\item \textbf{SVM 核函数}：RBF核适用于非线性可分数据，线性核适用于线性可分数据，多项式核在高次时可能过拟合。
+\item \textbf{KMeans 的 \texttt{K} 值}：通过肘部法则和轮廓系数综合判断，\texttt{K=5} 为本数据集的最优聚类数。
+\item \textbf{DBSCAN 的 \texttt{eps} 参数}：\texttt{eps} 过小会产生过多噪声点，过大会导致所有样本被归为同一簇。
+\end{itemize}
+
+\textbf{3. 实验收获与思考}
+
+通过本次实验，我深入理解了传统机器学习的完整流程：
+从数据预处理、特征工程，到模型训练、评估和可视化。
+实验中体会到，没有一种算法在所有场景下都是最优的，需要根据数据特点和任务需求选择合适的算法。
+同时，数据可视化对于理解数据分布和模型行为至关重要，它能帮助我们发现数据中的潜在模式和模型的不足之处。
+此外，交叉验证是评估模型泛化能力的重要手段，能有效避免因数据划分方式不同而导致的评估偏差。
+
+\end{document}

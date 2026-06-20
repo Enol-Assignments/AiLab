@@ -1,0 +1,341 @@
+\documentclass[UTF8]{ctexart}
+
+\usepackage[T1]{fontenc}
+\usepackage{lmodern} 
+\usepackage{fix-cm}    
+\usepackage{microtype} 
+
+
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{amsmath}
+\usepackage{geometry}
+\geometry{a4paper, margin=2.5cm}
+
+\lstset{
+  language=Python,
+  basicstyle=\small\ttfamily,
+  keywordstyle=\color{blue},
+  commentstyle=\color{gray},
+  stringstyle=\color{red},
+  showstringspaces=false,
+  breaklines=true,
+  frame=single,
+  numbers=left,
+  numberstyle=\tiny\color{gray},
+  tabsize=4,
+  columns=flexible,
+}
+
+\begin{document}
+
+\begin{center}
+{\LARGE\textbf{人工智能实验报告}}\\[8pt]
+{\Large\textbf{实验一} \quad 知识表示、推理与搜索}
+\end{center}
+
+\vspace{8pt}
+
+\begin{center}
+\begin{tabular}{
+    >{\raggedright\arraybackslash}p{4.8cm}
+    >{\centering\arraybackslash}p{4.8cm}
+    >{\raggedleft\arraybackslash}p{4.8cm}
+}
+
+学院：\underline{\makebox[3.6cm][c]{计算机与通信工程学院}} &
+专业：\underline{\makebox[3.6cm][c]{计算机科学与技术}} &
+班级：\underline{\makebox[3.6cm][c]{计 234 班}} \\
+[6pt]
+姓名：\underline{\makebox[3.6cm][c]{秦瑞}} &
+学号：\underline{\makebox[3.6cm][c]{U202342492}} &
+日期：\underline{\makebox[3.6cm][c]{2026 年 6 月 19 日}} \\
+\end{tabular}
+\end{center}
+
+\vspace{12pt}
+
+\section{实验目标}
+
+\begin{enumerate}
+  \item 熟练掌握知识表示的多种基本方法，包括状态空间法、产生式系统等，并能根据不同问题灵活选择和运用。
+  \item 准确实现经典搜索算法，如广度优先搜索（BFS）、深度优先搜索（DFS）、A* 算法（启发式函数）等，理解其算法原理和执行过程。
+  \item 深入分析不同搜索策略在效率方面的差异，通过实验结果进行可视化、对比和评估。
+\end{enumerate}
+
+\section{实验内容}
+
+\subsection{任务分析}
+
+本次实验包含两个经典人工智能搜索问题：
+
+\textbf{（1）八数码问题（Eight Puzzle）}
+
+给定一个 $3 \times 3$ 的棋盘，其中包含数字 $1$ 至 $8$ 和一个空格（用 $0$ 表示）。通过移动空格相邻的数字块，将初始状态变换为目标状态。初始状态与目标状态如下：
+
+\[
+\text{初始状态：}\begin{pmatrix} 1 & 2 & 3 \\ 4 & 0 & 6 \\ 7 & 5 & 8 \end{pmatrix}
+\quad\Longrightarrow\quad
+\text{目标状态：}\begin{pmatrix} 1 & 2 & 3 \\ 4 & 5 & 6 \\ 7 & 8 & 0 \end{pmatrix}
+\]
+
+状态可用九元组表示，如 $(1,2,3,4,0,6,7,5,8)$。每次操作为空格与上下左右相邻位置交换，产生新状态。
+
+\textbf{（2）传教士与食人魔问题（Missionaries and Cannibals）}
+
+河的一侧有 $3$ 名传教士和 $3$ 名食人魔，需要乘船渡河到对岸。约束条件为：
+\begin{itemize}
+  \item 船每次最多载 $2$ 人，最少载 $1$ 人；
+  \item 任意一侧河岸上，若传教士人数大于 $0$，则传教士人数不能少于食人魔人数。
+\end{itemize}
+状态用三元组 $(M, C, B)$ 表示，其中 $M$ 为左岸传教士人数，$C$ 为左岸食人魔人数，$B$ 为船的位置（$1$ 在左岸，$0$ 在右岸）。初始状态 $(3,3,1)$，目标状态 $(0,0,0)$。
+
+\subsection{实现工具}
+
+\begin{itemize}
+  \item \textbf{编程语言}：Python 3
+  \item \textbf{核心数据结构}：\texttt{deque}（队列，用于 BFS）、\texttt{list} 模拟栈（用于 DFS）、\texttt{heapq} 优先队列（用于 A*）
+  \item \textbf{时间度量}：\texttt{time.perf\_counter()}，提供高精度计时
+  \item \textbf{状态表示}：Python 元组（\texttt{tuple}），支持哈希，便于存入 \texttt{set} 和 \texttt{dict}
+\end{itemize}
+
+\subsection{实现方案}
+
+整体方案分为三层：
+
+\begin{enumerate}
+  \item \textbf{搜索算法层}（\texttt{Search.py}）：实现 BFS、DFS、A* 三种通用搜索算法，接收起始状态、目标状态、邻居函数作为参数，返回搜索结果（是否找到、路径、步数、扩展节点数、耗时等）。
+  \item \textbf{问题建模层}（\texttt{EightPuzzle.py}、\texttt{MissionaryCannibal.py}）：为每个问题定义状态表示、邻居生成函数和启发式函数。
+  \item \textbf{主程序}：组合调用上述模块，执行搜索并输出结果。
+\end{enumerate}
+
+搜索算法均采用统一的 \texttt{SearchResult} 结构返回结果，包含：\texttt{found}（是否找到）、\texttt{path}（路径）、\texttt{steps}（步数）、\texttt{expanded}（扩展节点数）、\texttt{time\_s}（耗时）。
+
+\subsection{实现内容}
+
+\subsubsection{通用搜索算法}
+
+\textbf{广度优先搜索（BFS）}从起始状态开始，逐层扩展节点，使用队列管理待扩展节点。保证找到的路径为最短路径。
+
+\begin{lstlisting}[caption={BFS 算法核心逻辑}]
+def BreadthFirstSearch(start, goal, neighbors_fn):
+    queue = deque([start])
+    came_from = {start: None}
+    visited = {start}
+    while queue:
+        state = queue.popleft()
+        if state == goal:
+            return SearchResult(True, ReconstructPath(came_from, state), ...)
+        for nb in neighbors_fn(state):
+            if nb not in visited:
+                visited.add(nb)
+                came_from[nb] = state
+                queue.append(nb)
+    return SearchResult(False, None, ...)
+\end{lstlisting}
+
+\textbf{深度优先搜索（DFS）}使用栈结构，优先沿一条路径深入搜索到底，再回溯。实现中使用带深度信息的栈元素，并记录每个状态的访问深度，允许在更浅深度再次访问同一状态。
+
+\begin{lstlisting}[caption={DFS 算法核心逻辑}]
+def DepthFirstSearch(start, goal, neighbors_fn):
+    stack = [(start, 0, None)]
+    came_from = {start: None}
+    visited_depth = {start: 0}
+    while stack:
+        state, depth, parent = stack.pop()
+        if state == goal:
+            return SearchResult(True, ReconstructPath(came_from, state), ...)
+        for nb in reversed(neighbors_fn(state)):
+            nd = depth + 1
+            if nb in visited_depth and visited_depth[nb] <= nd:
+                continue
+            visited_depth[nb] = nd
+            came_from[nb] = state
+            stack.append((nb, nd, state))
+\end{lstlisting}
+
+\textbf{A* 搜索算法}结合实际代价 $g(n)$ 和启发式估计 $h(n)$，以 $f(n) = g(n) + h(n)$ 为优先级进行搜索。使用最小堆维护开放列表。
+
+\begin{lstlisting}[caption={A* 算法核心逻辑}]
+def AStarSearch(start, goal, neighbors_fn, heuristic_fn):
+    open_heap = []
+    g_score = {start: 0}
+    f_score = {start: heuristic_fn(start)}
+    heapq.heappush(open_heap, (f_score[start], g_score[start], 0, start))
+    came_from = {start: None}
+    closed = set()
+    while open_heap:
+        _, g, _, state = heapq.heappop(open_heap)
+        if state in closed:
+            continue
+        if state == goal:
+            return SearchResult(True, ReconstructPath(came_from, state), ...)
+        closed.add(state)
+        for nb in neighbors_fn(state):
+            tentative_g = g + 1
+            if tentative_g < g_score.get(nb, float("inf")):
+                came_from[nb] = state
+                g_score[nb] = tentative_g
+                heapq.heappush(open_heap,
+                    (tentative_g + heuristic_fn(nb), tentative_g, counter, nb))
+\end{lstlisting}
+
+\subsubsection{八数码问题建模}
+
+状态用九元组表示，通过空格（$0$）的位置确定可移动方向。启发式函数采用\textbf{曼哈顿距离}，即每个数字块到其目标位置的行列距离之和（忽略空格）：
+
+\[
+h(n) = \sum_{i=1}^{8} |r_i - r_i^{*}| + |c_i - c_i^{*}|
+\]
+
+\begin{lstlisting}[caption={八数码问题邻居生成与启发式函数}]
+def GetNeighbors(state):
+    zero_idx = state.index(0)
+    r, c = IndexToMatrix(zero_idx)
+    moves = []
+    for dr, dc in ((-1,0),(1,0),(0,-1),(0,1)):
+        nr, nc = r + dr, c + dc
+        if 0 <= nr < 3 and 0 <= nc < 3:
+            lst = list(state)
+            lst[zero_idx], lst[MatrixToIndex(nr,nc)] = lst[MatrixToIndex(nr,nc)], lst[zero_idx]
+            moves.append(tuple(lst))
+    return moves
+
+def ManhattanDistance(state, goal=GOAL_STATE):
+    pos_goal = {val: i for i, val in enumerate(goal)}
+    total = 0
+    for i, val in enumerate(state):
+        if val == 0: continue
+        gi = pos_goal[val]
+        r1,c1 = IndexToMatrix(i)
+        r2,c2 = IndexToMatrix(gi)
+        total += abs(r1-r2) + abs(c1-c2)
+    return total
+\end{lstlisting}
+
+\subsubsection{传教士与食人魔问题建模}
+
+状态用三元组 $(M, C, B)$ 表示，每次渡河选择 $1$ 或 $2$ 人的组合（共 $5$ 种合法移动）。合法性检验确保两岸传教士人数均不少于食人魔人数（或传教士为零时不受约束）。
+
+启发式函数设计为剩余过河人数的一半（向上取整），因为每次最多载 $2$ 人：
+
+\[
+h(n) = \left\lceil \frac{M + C}{2} \right\rceil
+\]
+
+\begin{lstlisting}[caption={传教士与食人魔问题启发式函数}]
+def Heuristic(state):
+    missionary, cannibal, boat = state
+    remaining = missionary + cannibal
+    return (remaining + 1) // 2
+\end{lstlisting}
+
+\subsubsection{实验结果与分析}
+
+\textbf{（1）八数码问题搜索结果}
+
+对初始状态 $(1,2,3,4,0,6,7,5,8)$ 进行搜索，结果如下表所示：
+
+\begin{table}[htbp]
+\centering
+\caption{八数码问题三种搜索算法对比}
+\begin{tabular}{lcccc}
+\toprule
+算法 & 是否找到 & 步数 & 扩展节点数 & 耗时 (s) \\
+\midrule
+BFS & 是 & 2 & 9 & 0.0 \\
+DFS & 是 & 2 & 14 & 0.0001 \\
+A* & 是 & 2 & 3 & 0.0001 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+A* 搜索的解路径为：
+
+\[
+(1,2,3,4,\mathbf{0},6,7,5,8) \rightarrow (1,2,3,4,5,6,7,\mathbf{0},8) \rightarrow (1,2,3,4,5,6,7,8,\mathbf{0})
+\]
+
+\textbf{分析}：
+\begin{itemize}
+  \item 三种算法均在 $2$ 步内找到解，但扩展节点数差异显著。A* 仅扩展 $3$ 个节点，BFS 扩展 $9$ 个，DFS 扩展 $14$ 个。
+  \item A* 通过曼哈顿距离启发式有效引导搜索方向，大幅减少了不必要的节点扩展。
+  \item DFS 虽然时间开销与 A* 相近（均约为 $0.0001$s），但扩展了更多节点，且最大搜索前沿达到 $5$，内存占用更高。
+  \item BFS 扩展节点数居中（$9$ 个），但保证了最短路径。
+\end{itemize}
+
+\textbf{（2）传教士与食人魔问题搜索结果}
+
+对初始状态 $(3,3,1)$ 进行搜索，结果如下表所示：
+
+\begin{table}[htbp]
+\centering
+\caption{传教士与食人魔问题搜索算法对比}
+\begin{tabular}{lcccc}
+\toprule
+算法 & 是否找到 & 步数 & 扩展节点数 & 耗时 (s) \\
+\midrule
+BFS & 是 & 11 & 15 & 0.0 \\
+A* & 是 & 11 & 15 & 0.0001 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+A* 搜索的完整解路径如下：
+
+\begin{table}[htbp]
+\centering
+\caption{传教士与食人魔问题 A* 解路径}
+\begin{tabular}{ccccccccccccc}
+\toprule
+步骤 & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 & 10 & 11 & 12 \\
+\midrule
+$M$ & 3 & 3 & 3 & 3 & 3 & 1 & 2 & 0 & 0 & 0 & 1 & 0 \\
+$C$ & 3 & 1 & 2 & 0 & 1 & 1 & 2 & 2 & 3 & 1 & 1 & 0 \\
+$B$ & 1 & 0 & 1 & 0 & 1 & 0 & 1 & 0 & 1 & 0 & 1 & 0 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{分析}：
+\begin{itemize}
+  \item BFS 和 A* 均找到步数为 $11$ 的解，且扩展节点数相同（$15$ 个）。
+  \item 对于此问题，由于状态空间较小（合法状态仅约 $20$ 个），启发式函数的引导效果有限，BFS 与 A* 性能接近。
+  \item 启发式函数 $h(n) = \lceil(M+C)/2\rceil$ 给出了每次渡河最多 $2$ 人的下界估计，保证了 A* 的最优性。
+  \item 该问题的解路径较长（$11$ 步），反映了传教士与食人魔问题固有的约束复杂性——需要反复来回运输以维持安全约束。
+\end{itemize}
+
+\textbf{（3）三种搜索算法综合对比}
+
+\begin{table}[htbp]
+\centering
+\caption{算法特性对比总结}
+\begin{tabular}{lccc}
+\toprule
+特性 & BFS & DFS & A* \\
+\midrule
+最优性 & 保证最短路径 & 不保证 & 保证（启发函数一致时） \\
+完备性 & 保证 & 不保证（可能陷入无限深度） & 保证 \\
+空间复杂度 & $O(b^d)$ & $O(b \cdot m)$ & $O(b^d)$ \\
+时间复杂度 & $O(b^d)$ & $O(b^m)$ & $O(b^d)$（依赖启发函数质量） \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+其中 $b$ 为分支因子，$d$ 为解的深度，$m$ 为搜索最大深度。
+
+\section{实验总结}
+
+\textbf{结果分析}：实验结果表明，在八数码问题中，A* 算法凭借曼哈顿距离启发式，仅需扩展 $3$ 个节点即可找到最优解，相比 BFS（$9$ 个节点）和 DFS（$14$ 个节点）具有显著的效率优势。在传教士与食人魔问题中，由于状态空间较小，BFS 与 A* 表现相近。
+
+\textbf{算法性能对比}：BFS 保证最短路径但空间开销大；DFS 空间效率高但不保证最优解，且可能陷入深层搜索；A* 在保证最优性的前提下，通过启发式函数有效缩减搜索空间，是实际应用中最常用的搜索策略。
+
+\textbf{启发式函数的作用}：启发式函数为 A* 提供了对目标距离的估计，使搜索更具方向性。曼哈顿距离对八数码问题效果显著，因为它是可采纳的（不会高估实际代价）且一致的。传教士与食人魔问题的启发式虽较简单，但也有效引导了搜索。
+
+\textbf{遇到的问题与解决}：DFS 实现中需要处理状态的重复访问问题。通过记录每个状态的访问深度，允许在更浅深度再次访问同一状态，避免遗漏更优路径。
+
+\textbf{思考与启迪}：本实验加深了对经典搜索算法原理的理解。在实际问题中，选择合适的搜索策略和启发式函数至关重要——A* 算法的成功很大程度上取决于启发式函数的质量。未来可进一步研究迭代加深 A*（IDA*）等内存优化算法，以及将搜索技术应用于更复杂的问题域。
+
+\end{document}

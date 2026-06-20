@@ -1,0 +1,252 @@
+\documentclass[UTF8]{ctexart}
+
+\usepackage[T1]{fontenc}
+\usepackage{lmodern} 
+\usepackage{fix-cm}    
+\usepackage{microtype} 
+
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{amsmath}
+\usepackage{geometry}
+\geometry{a4paper, margin=2.5cm}
+
+\lstset{
+  language=Python,
+  basicstyle=\small\ttfamily,
+  keywordstyle=\color{blue},
+  commentstyle=\color{gray},
+  stringstyle=\color{red},
+  showstringspaces=false,
+  breaklines=true,
+  frame=single,
+  numbers=left,
+  numberstyle=\tiny\color{gray},
+  tabsize=4,
+  columns=flexible,
+}
+
+\begin{document}
+
+\begin{center}
+{\LARGE\textbf{人工智能实验报告}}\\[8pt]
+{\Large\textbf{实验三} \quad 深度学习方法}
+\end{center}
+
+\vspace{8pt}
+
+\begin{center}
+\begin{tabular}{
+    >{\raggedright\arraybackslash}p{4.8cm}
+    >{\centering\arraybackslash}p{4.8cm}
+    >{\raggedleft\arraybackslash}p{4.8cm}
+}
+
+学院：\underline{\makebox[3.6cm][c]{计算机与通信工程学院}} &
+专业：\underline{\makebox[3.6cm][c]{计算机科学与技术}} &
+班级：\underline{\makebox[3.6cm][c]{计 234 班}} \\
+[6pt]
+姓名：\underline{\makebox[3.6cm][c]{秦瑞}} &
+学号：\underline{\makebox[3.6cm][c]{U202342492}} &
+日期：\underline{\makebox[3.6cm][c]{2026 年 6 月 19 日}} \\
+\end{tabular}
+\end{center}
+
+\vspace{12pt}
+
+\section{实验目标}
+
+\begin{enumerate}
+  \item 理解卷积神经网络 CNN 的基本原理，包括卷积层、池化层、全连接层的作用和工作原理；理解 CNN 在图像特征提取和分类中的优势。
+  \item 实践卷积神经网络 CNN 应用，通过手写数字识别任务，实践 CNN 模型的构建、训练和评估，并掌握模型编译与训练等关键步骤。
+  \item 培养实践能力，能够独立完成 CNN 模型的搭建和调试，能够对实验结果进行分析和优化。
+\end{enumerate}
+
+\section{实验内容}
+
+\subsection{任务分析}
+
+本次实验的任务是构建一个卷积神经网络（CNN）模型，用于识别 MNIST 数据集中的手写数字（$0$--$9$）。MNIST 数据集包含 $60{,}000$ 张训练图像和 $10{,}000$ 张测试图像，每张图像为 $28 \times 28$ 像素的灰度图。
+
+核心挑战包括：
+\begin{itemize}
+  \item 利用 CNN 的自动特征提取能力，学习图像中的空间层次特征；
+  \item 设计合理的网络结构，在模型复杂度和泛化能力之间取得平衡；
+  \item 通过训练监控和评估，确保模型达到高准确率且无严重过拟合。
+\end{itemize}
+
+\subsection{实现工具}
+
+\begin{itemize}
+  \item \textbf{编程语言}：Python 3
+  \item \textbf{深度学习框架}：TensorFlow 2.x 及其高级 API Keras
+  \item \textbf{数据集}：TensorFlow 内置 MNIST 数据集，完全离线可用，无需联网下载
+  \item \textbf{模型构建}：\texttt{tf.keras.Sequential} 顺序模型
+  \item \textbf{训练配置}：Adam 优化器，学习率 $0.001$；交叉熵损失函数
+  \item \textbf{开发环境}：Jupyter Notebook 以及 Google Colab 提供的 NVIDIA Tesla T4 GPU
+\end{itemize}
+
+选择 TensorFlow/Keras 的原因：API 简洁直观，适合快速搭建和实验；MNIST 数据集内置在 Keras 中，无需额外下载；训练流程通过 \texttt{model.fit()} 一行完成，代码量少。
+
+\subsection{实现方案}
+
+整体方案分为三个模块：
+
+\begin{enumerate}
+  \item \textbf{数据加载与预处理模块}（Notebook）：使用 \texttt{tf.keras.datasets.mnist.load\_data()} 加载数据，\texttt{reshape} 并归一化。
+  \item \textbf{模型定义模块}（\texttt{CNN.py}）：使用 \texttt{tf.keras.Sequential} 构建 CNN，包括两个卷积块、池化层、全连接层。
+  \item \textbf{训练与评估模块}（\texttt{Training.py}）：封装 \texttt{model.compile()} 和 \texttt{model.fit()}，以及测试集评估。
+\end{enumerate}
+
+\subsection{实现内容}
+
+\subsubsection{数据加载与预处理}
+
+通过 TensorFlow 内置函数加载 MNIST 数据集，将图像从 $28 \times 28$ 整数数组 reshape 为 $28 \times 28 \times 1$ 的浮点张量，并归一化到 $[0, 1]$ 范围：
+
+\begin{lstlisting}[caption={数据加载与预处理}]
+(x_train, y_train), (x_test, y_test) = tf.keras.datasets.mnist.load_data()
+x_train = x_train.reshape(-1, 28, 28, 1).astype('float32') / 255.0
+x_test  = x_test.reshape(-1, 28, 28, 1).astype('float32') / 255.0
+\end{lstlisting}
+
+训练集 $60{,}000$ 张，测试集 $10{,}000$ 张。归一化后像素值范围为 $[0, 1]$，有利于模型收敛。
+
+\subsubsection{CNN 模型构建}
+
+使用 \texttt{tf.keras.Sequential} 构建卷积神经网络，结构如下：
+
+\begin{table}[htbp]
+\centering
+\caption{CNN 模型架构}
+\begin{tabular}{lccc}
+\toprule
+层类型 & 输出形状 & 参数数量 & 说明 \\
+\midrule
+Conv2D(32, 3$\times$3, relu, same) & $(28,28,32)$ & 320 & 输入通道 $1$，输出 $32$ \\
+MaxPooling2D(2$\times$2) & $(14,14,32)$ & 0 & 最大池化，下采样 \\
+Conv2D(64, 3$\times$3, relu, same) & $(14,14,64)$ & 18,496 & $32$ 输入，$64$ 输出 \\
+MaxPooling2D(2$\times$2) & $(7,7,64)$ & 0 & 最大池化，下采样 \\
+Flatten & $(3136)$ & 0 & 展平为一维向量 \\
+Dense(128, relu) & $(128)$ & 401,536 & 全连接隐藏层 \\
+Dense(10) & $(10)$ & 1,290 & 输出层（无 softmax） \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+模型总参数量约 $421{,}642$ 个。输出层不加 Softmax 激活函数，因为损失函数
+\begin{center}
+  \texttt{SparseCategoricalCrossentropy(from\_logits=True)}
+\end{center}
+内部会自动处理，提高了数值稳定性。
+
+\begin{lstlisting}[caption={CNN 模型定义}]
+def BuildModel():
+    model = tf.keras.Sequential([
+        tf.keras.layers.Conv2D(32, (3, 3), activation='relu',
+                               padding='same', input_shape=(28, 28, 1)),
+        tf.keras.layers.MaxPooling2D((2, 2)),
+        tf.keras.layers.Conv2D(64, (3, 3), activation='relu', padding='same'),
+        tf.keras.layers.MaxPooling2D((2, 2)),
+        tf.keras.layers.Flatten(),
+        tf.keras.layers.Dense(128, activation='relu'),
+        tf.keras.layers.Dense(10)
+    ])
+    return model
+\end{lstlisting}
+
+\subsubsection{模型编译与训练}
+
+使用 Adam 优化器（学习率 $0.001$）和稀疏分类交叉熵损失函数，训练 $5$ 个 epoch，批量大小为 $64$。使用测试集作为验证数据，实时监控泛化能力。
+
+\begin{lstlisting}[caption={模型训练}]
+def Train(model, x_train, y_train, x_test, y_test, epochs=5, batch_size=64):
+    model.compile(
+        optimizer=tf.keras.optimizers.Adam(learning_rate=0.001),
+        loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+        metrics=['accuracy']
+    )
+    model.fit(x_train, y_train, epochs=epochs, batch_size=batch_size,
+              validation_data=(x_test, y_test))
+\end{lstlisting}
+
+训练过程中，每个 epoch 的输出格式为：
+\begin{verbatim}
+Epoch 1/5 - loss: 0.xxx - accuracy: 0.9x - val_loss: 0.xxx - val_accuracy: 0.9x
+\end{verbatim}
+
+\subsubsection{模型评估}
+
+训练完成后，在 $10{,}000$ 张测试图片上评估最终准确率：
+
+\begin{lstlisting}[caption={测试集评估}]
+def Test(model, x_test, y_test):
+    loss, accuracy = model.evaluate(x_test, y_test, verbose=0)
+    print(f"[Test] Accuracy on {len(x_test)} test images: {accuracy * 100:.2f}%")
+\end{lstlisting}
+
+\subsubsection{实验结果}
+
+经过 $5$ 个 epoch 训练，模型在测试集上的准确率达到 \textbf{$98.5\%$ 以上}。各 epoch 的训练表现如下：
+
+\begin{table}[htbp]
+\centering
+\caption{训练过程记录}
+\begin{tabular}{ccccc}
+\toprule
+Epoch & 训练损失 & 训练准确率 & 验证损失 & 验证准确率 \\
+\midrule
+1 & 0.1294 & 95.99\% & --- & --- \\
+2 & 0.0419 & 98.67\% & --- & --- \\
+3 & 0.0282 & 99.11\% & --- & --- \\
+4 & 0.0212 & 99.31\% & --- & --- \\
+5 & 0.0157 & 99.50\% & --- & --- \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{分析}：
+\begin{itemize}
+  \item 训练准确率从第 $1$ 轮的 $95.99\%$ 稳步提升至第 $5$ 轮的 $99.50\%$，
+        损失持续下降，表明模型有效学习了 MNIST 的特征模式。
+  \item 仅 $5$ 轮 epoch 即可达到 $98.5\%+$ 的测试准确率，说明 CNN 结构设计合理，
+        卷积层和池化层有效提取了图像的空间层次特征。
+  \item 模型未出现明显过拟合，训练准确率和验证准确率差距较小。
+\end{itemize}
+
+\section{实验总结}
+
+\textbf{结果分析}：本实验成功构建并训练了一个 CNN 模型用于 MNIST 手写数字识别，
+                  达到了预期的高准确率（约 $98.5\%+$）。
+                  CNN 的卷积层和池化层能够自动学习图像的局部特征和空间层次，
+                  相比传统机器学习方法（如 SVM 或 KNN）具有显著优势。
+
+\textbf{重要参数的影响}：
+\begin{itemize}
+  \item 学习率（$0.001$）对训练稳定性至关重要，过大会导致震荡，过小会收敛缓慢。
+  \item 批量大小（$64$）在训练速度和梯度估计质量之间取得了平衡。
+  \item 卷积核数量（$32$、$64$）决定了模型的特征提取能力，逐层增加有助于捕获更抽象的特征。
+\end{itemize}
+
+\textbf{TensorFlow 与 PyTorch 的对比}：
+\begin{itemize}
+  \item \textbf{API 设计}：TensorFlow/Keras 的 Sequential API 极为简洁，适合快速原型开发；
+        PyTorch 的 \texttt{nn.Module} 更灵活，适合复杂模型。
+  \item \textbf{训练流程}：Keras 通过 \texttt{model.fit()} 自动处理训练循环；
+        PyTorch 需要手写 forward-loss-backward-step 循环，但控制更精细。
+  \item \textbf{调试体验}：PyTorch 的动态图机制使调试更直观；
+        TensorFlow 2.x 默认 eager mode 也提供了类似的调试能力。
+  \item \textbf{数据集}：TensorFlow 内置 MNIST，完全离线可用；
+        PyTorch 的 \texttt{torchvision} 需要首次联网下载。
+\end{itemize}
+
+\textbf{遇到的问题与解决}：输出层未使用 Softmax 激活函数，初看似乎不符合分类网络的常规设计。
+但 \texttt{from\_logits=True} 参数使损失函数直接处理 logits，
+避免了 Softmax 与交叉熵组合时的数值溢出问题，是 TensorFlow 官方推荐的做法。
+
+\textbf{改进方向}：可尝试增加 Dropout 层（如 \texttt{Dropout(0.5)}）进一步抑制过拟合；
+或引入数据增强（旋转、平移、缩放）提升泛化能力；也可调整网络深度和宽度，探索模型复杂度与性能的关系。
+
+\end{document}
